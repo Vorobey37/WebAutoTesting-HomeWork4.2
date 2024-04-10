@@ -1,4 +1,4 @@
-package org.example;
+package org.example.tests.homework1;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
