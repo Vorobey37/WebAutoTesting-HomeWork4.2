@@ -1,13 +1,14 @@
 package org.example.pom.elements;
 
+import com.codeborne.selenide.SelenideElement;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
 public class StudentTableRow {
 
-    private final WebElement root;
+    private SelenideElement root;
 
-    public StudentTableRow(WebElement root) {
+    public StudentTableRow(SelenideElement root) {
         this.root = root;
     }
 

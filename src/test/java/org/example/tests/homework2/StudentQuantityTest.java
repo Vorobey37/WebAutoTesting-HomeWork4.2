@@ -1,48 +1,54 @@
 package org.example.tests.homework2;
 
+import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.WebDriverRunner;
 import org.example.pom.LoginPage;
 import org.example.pom.StudentPage;
-import org.example.pom.elements.StudentTableRow;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.support.ui.WebDriverWait;
-
-import java.time.Duration;
 import java.time.LocalTime;
 
 public class StudentQuantityTest {
     private final String USERNAME = "GB202302c48fb20";
     private final String PASSWORD = "7abe49a426";
-    private String pathToChromeDriver;
-    private String testStandUrl;
+    private StudentPage studentPage;
     private WebDriver driver;
-    private WebDriverWait wait;
 
+    @BeforeEach
+    public void setUp(){
+
+        Selenide.open("https://test-stand.gb.ru/login");
+        driver = WebDriverRunner.getWebDriver();
+        LoginPage loginPage = Selenide.page(LoginPage.class);
+        loginPage.login(USERNAME, PASSWORD);
+        studentPage = Selenide.page(StudentPage.class);
+        Selenide.sleep(2000);
+    }
     @Test
     public void studentQuantityTest(){
-        pathToChromeDriver = "src/main/resources/chromedriver.exe";
-        System.setProperty("webChromeDriver", pathToChromeDriver);
 
-        driver = new ChromeDriver();
-        wait = new WebDriverWait(driver, Duration.ofSeconds(30));
-        testStandUrl = "https://test-stand.gb.ru/login";
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
-        driver.get(testStandUrl);
-
-        LoginPage loginPage = new LoginPage(wait, driver);
-        loginPage.login(USERNAME, PASSWORD);
-
-        StudentPage studentPage = new StudentPage(wait, driver);
+        int quantityBefore = Integer.parseInt(studentPage.getQuantityStudentField());
         String loginAndName = LocalTime.now().toString();
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
         studentPage.addStudent(loginAndName);
+        Selenide.sleep(2000);
+        int quantityAfter = Integer.parseInt(studentPage.getQuantityStudentField());
+        Assertions.assertEquals(quantityAfter, quantityBefore + 1);
 
+    }
 
+    @Test
+    public void studentStatusTest(){
 
-        System.out.println(studentPage.getStatusInStudentTableRow(loginAndName));
+        String actualStatus = studentPage.getStatusInStudentTableRow();
+        Assertions.assertEquals("active", actualStatus);
 
+    }
+
+    @AfterEach
+    public void close(){
+        WebDriverRunner.closeWebDriver();
     }
 }

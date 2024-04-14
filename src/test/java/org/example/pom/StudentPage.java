@@ -1,5 +1,7 @@
 package org.example.pom;
 
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 import org.example.pom.elements.StudentTableRow;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -8,62 +10,53 @@ import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.time.LocalTime;
-import java.util.List;
+
+import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
+import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.*;
 
 public class StudentPage {
 
-    private final WebDriverWait wait;
-
-    //private WebElement studentNameField;
     @FindBy(css="button#create-btn")
-    private WebElement addStudentButton;
-    @FindBy(css="#app > main > div > div > div.mdc-data-table > div.mdc-data-table__pagination > div > div.mdc-data-table__pagination-navigation > div")
-    private WebElement quantityStudentField;
-    //private WebElement basketButton;
-    //private WebElement statusField;
-    @FindBy(css="form#upsert-item > div:nth-child(1) > label > input")
-    private WebElement firstNameField;
-    @FindBy(css="form#upsert-item > div:nth-child(5) > label > input")
-    private WebElement loginField;
-    @FindBy(css="form#upsert-item > div.submit > button")
-    private WebElement saveButton;
-    @FindBy(css="div#app > main > div > div > div.mdc-dialog.mdc-dialog--open > div.mdc-dialog__container > div > div.form-modal-header.mdc-dialog__header > button")
-    private WebElement closeButton;
-    @FindBy(css="div#app > main > div > div > div.mdc-data-table > div.mdc-data-table__table-container > table > tbody > tr:nth-child(1)")
-    private List<WebElement> rowsInStudentTable;
-//#app > main > div > div > div.mdc-data-table > div.mdc-data-table__table-container > table > tbody
+    private SelenideElement addStudentButton;
+    private SelenideElement quantityStudentField = $("div.mdc-data-table__pagination-total");
 
-    public StudentPage(WebDriverWait wait, WebDriver driver) {
-        this.wait = wait;
-        PageFactory.initElements(driver, this);
+    @FindBy(css="form#upsert-item > div:nth-child(1) > label > input")
+    private SelenideElement firstNameField;
+    @FindBy(css="form#upsert-item > div:nth-child(5) > label > input")
+    private SelenideElement loginField;
+    @FindBy(css="form#upsert-item > div.submit > button")
+    private SelenideElement saveButton;
+    @FindBy(css="div#app > main > div > div > div.mdc-dialog.mdc-dialog--open > div.mdc-dialog__container > div > div.form-modal-header.mdc-dialog__header > button")
+    private SelenideElement closeButton;
+    private ElementsCollection rowsInStudentTable = $$("tbody.mdc-data-table__table-content");
+
+    public String getQuantityStudentField() {
+        char[] result = {getCharOfQuantityStudentField(8), getCharOfQuantityStudentField(9)};
+        return new String(result);
     }
 
-    public WebElement getQuantityStudentField() {
-        return wait.until(ExpectedConditions.visibilityOf(quantityStudentField));
+    private char getCharOfQuantityStudentField(int index){
+        return quantityStudentField.shouldBe(visible).getText().charAt(index);
     }
 
     public void addStudent(String loginAndName){
+        addStudentButton.shouldBe(visible).click();
 
-        addStudentButton.click();
+        firstNameField.shouldBe(visible).sendKeys(loginAndName);
+        loginField.shouldBe(visible).sendKeys(loginAndName);
+        saveButton.shouldBe(visible).click();
+        closeButton.shouldBe(visible).click();
 
-        wait.until(ExpectedConditions.visibilityOf(firstNameField)).sendKeys(loginAndName);
-        wait.until(ExpectedConditions.visibilityOf(loginField)).sendKeys(loginAndName);
-
-        wait.until(ExpectedConditions.visibilityOf(saveButton)).click();
-
-        closeButton.click();
-        wait.until(ExpectedConditions.visibilityOf(closeButton));
     }
 
-    public String getStatusInStudentTableRow(String name){
-        return getRowsInStudentTableByName(name).getStatus();
+    public String getStatusInStudentTableRow(){
+        return new StudentTableRow(rowsInStudentTable.first()).getStatus();
     }
 
-    private StudentTableRow getRowsInStudentTableByName(String name) {
-        return rowsInStudentTable.stream()
-                .map(StudentTableRow::new)
-                .filter(row -> row.getName().equals(name))
-                .findFirst().orElseThrow();
+    private SelenideElement getRowsInStudentTable() {
+        return rowsInStudentTable.shouldHave(sizeGreaterThan(0))
+                .first();
+
     }
 }
